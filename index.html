@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Projet_EVG_Terminal_Agent.exe</title>
+    <style>
+        body {
+            background-color: #050505;
+            color: #00ff00;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 16px;
+            margin: 0;
+            padding: 15px;
+            height: 100vh;
+            box-sizing: border-box;
+            overflow-y: auto;
+            text-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
+        }
+
+        /* Scanline effect style Matrix */
+        body::after {
+            content: " ";
+            display: block;
+            position: fixed;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            z-index: 2;
+            background-size: 100% 2px, 3px 100%;
+            pointer-events: none;
+        }
+
+        #output { white-space: pre-wrap; line-height: 1.5; margin-bottom: 10px; }
+        .line { margin: 5px 0; }
+        .error { color: #ff3333; text-shadow: 0 0 5px rgba(255, 0, 0, 0.5); }
+        .success { color: #00ffff; text-shadow: 0 0 5px rgba(0, 255, 255, 0.5); }
+
+        #input-container { display: none; align-items: center; margin-top: 10px; }
+        #prompt { margin-right: 8px; font-weight: bold; }
+        .cursor { display: inline-block; width: 10px; height: 1.2em; background-color: #00ff00; vertical-align: middle; animation: blink 1s step-end infinite; }
+        
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+	/* --- Style pour les liens GPS --- */
+        .gps-link {
+            color: #00ff00;
+            text-decoration: underline;
+            text-decoration-style: dashed;
+            position: relative;
+            z-index: 20; /* Très important : permet de cliquer malgré le calque invisible */
+            cursor: pointer;
+        }
+        .gps-link:hover {
+            color: #fff;
+        }
+
+        /* Input invisible pour mobile et PC */
+        #hidden-input {
+            position: absolute;
+            opacity: 0;
+            top: -1000px;
+        }
+
+        #click-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; cursor: text;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="output"></div>
+    <div id="input-container">
+        <span id="prompt">C:\EVG\AGENT></span>
+        <span id="cmd-text"></span><span class="cursor"></span>
+    </div>
+    
+    <input type="text" id="hidden-input" autocomplete="off" spellcheck="false" autocorrect="off" autocapitalize="characters">
+    <div id="click-overlay"></div>
+
+    <script>
+        // --- SECURE HASH ALGORITHM (Joke ROT13) ---
+        function Advanced_SHA256_Cryptographic_Hash(str) {
+            return str.replace(/[a-zA-Z]/g, function(c) {
+                return String.fromCharCode((c <= 'Z' ? 90 : 122) >= (c = c.charCodeAt(0) + 13) ? c : c - 26);
+            });
+        }
+
+        // Codes cryptés (ROT13) - Correction des clés d'objet
+        const TARGETS = { 
+            "0": "EBBG", 
+            "2": "L", 
+            "2_alt": "LRH", 
+            "3": "XNJNOHATN", 
+            "4": "L", 
+            "4_alt": "LRH", 
+            "5": "VAPRCGVBA", 
+            "6": "L", 
+            "6_alt": "LRH", 
+            "7": "ZNYG", 
+            "8": "XVZ" 
+        };
+
+        const outputDiv = document.getElementById("output");
+        const inputContainer = document.getElementById("input-container");
+        const cmdText = document.getElementById("cmd-text");
+        const hiddenInput = document.getElementById("hidden-input");
+        
+        let state = parseInt(localStorage.getItem('evg_state')) || 0;
+        let isTyping = false;
+        let countdownInterval;
+
+        // Force le focus clavier
+        document.getElementById('click-overlay').addEventListener('click', () => { hiddenInput.focus(); });
+        document.addEventListener('keydown', () => { hiddenInput.focus(); });
+
+        // Synchronisation visuelle de la saisie
+        hiddenInput.addEventListener('input', () => { cmdText.textContent = hiddenInput.value.toUpperCase(); });
+
+        // Effet Machine à écrire
+        async function typeText(text, cssClass = "line") {
+            isTyping = true;
+            inputContainer.style.display = "none";
+            const lineDiv = document.createElement('div');
+            lineDiv.className = cssClass;
+            outputDiv.appendChild(lineDiv);
+
+            for (let i = 0; i < text.length; i++) {
+                lineDiv.textContent += text.charAt(i);
+                window.scrollTo(0, document.body.scrollHeight);
+                await new Promise(r => setTimeout(r, 15)); // Vitesse de frappe (un peu plus rapide)
+            }
+            isTyping = false;
+            window.scrollTo(0, document.body.scrollHeight);
+        }
+
+        async function printDirect(text, cssClass = "line") {
+            const lineDiv = document.createElement('div');
+            lineDiv.className = cssClass;
+            lineDiv.textContent = text;
+            outputDiv.appendChild(lineDiv);
+            window.scrollTo(0, document.body.scrollHeight);
+        }
+
+	// Affiche directement du HTML (pour les liens cliquables)
+        async function printHTML(html, cssClass = "line") {
+            const lineDiv = document.createElement('div');
+            lineDiv.className = cssClass;
+            lineDiv.innerHTML = html;
+            outputDiv.appendChild(lineDiv);
+            window.scrollTo(0, document.body.scrollHeight);
+        }
+
+        function requestInput() {
+            inputContainer.style.display = "flex";
+            hiddenInput.value = "";
+            cmdText.textContent = "";
+            hiddenInput.focus();
+            window.scrollTo(0, document.body.scrollHeight);
+        }
+
+        function saveState(newState) {
+            state = newState;
+            localStorage.setItem('evg_state', state);
+        }
+
+	// --- RESTAURATION DE L'HISTORIQUE ---
+        // Cette fonction réécrit tout l'historique valide en cas d'actualisation de la page
+        async function restoreHistory() {
+            if (state >= 2) {
+                await printDirect("C:\\EVG\\AGENT> ROOT");
+                await printDirect(">🔓 Mission acceptée, chargement du programme en cours.", "success");
+            }
+            if (state >= 3) {
+                await printDirect(">Ready ? Y/N");
+                await printDirect("C:\\EVG\\AGENT> Y");
+            }
+            if (state >= 4) {
+                await printDirect(">Mission 1 : Agent, l'asphalte t'attend. Alors monte dans les tours et fais leur mordre la poussière.");
+                await printDirect("C:\\EVG\\AGENT> KAWABUNGA");
+            }
+            if (state >= 5) {
+                await printDirect(">🔓 Bravo ! Prochaine étape : Error 404, reality not found. Virtual intervention required.", "success");
+                await printDirect(">Continuer ? Y/N");
+                await printDirect("C:\\EVG\\AGENT> Y");
+            }
+            if (state >= 6) {
+                await printDirect(">Mission 2 : pour survivre à la matrice vous devrez vous unir, ou être déconnectés à tout jamais.");
+                await printDirect("C:\\EVG\\AGENT> INCEPTION");
+            }
+            if (state >= 7) {
+                await printDirect(">🔓 Retour à la réalité, bien joué. Après l'effort, le réconfort.", "success");
+                await printDirect(">Continuer ? Y/N");
+                await printDirect("C:\\EVG\\AGENT> Y");
+            }
+            if (state >= 8) {
+                await printDirect(">Mission 3 : « Rien ne se perd, rien ne se crée, tout se transforme ».");
+                await printDirect(">Attention, présence d'enzyme non identifiée.");
+                await printDirect("C:\\EVG\\AGENT> MALT");
+            }
+            if (state >= 9) {
+                await printDirect(">🔓 C'est un succès. La mission touche bientôt à sa fin.", "success");
+                await printDirect(">3 activités, 3 codes. Quelle est la clé du bonheur ?");
+                await printDirect("C:\\EVG\\AGENT> KIM");
+            }
+        }
+
+        // --- MOTEUR LOGIQUE DES ÉTAPES ---
+        async function runLogic(input = null) {
+            if (input !== null) {
+                await printDirect("C:\\EVG\\AGENT> " + input);
+            }
+
+            const hashedInput = input ? Advanced_SHA256_Cryptographic_Hash(input) : null;
+
+            switch (state) {
+                case 0: // Écran de Compte à rebours
+                    const targetDate = new Date("2026-03-21T10:00:00").getTime();
+                    
+                    if (!countdownInterval) {
+                        const cdDiv = document.createElement('div');
+                        cdDiv.style.marginBottom = "20px";
+                        outputDiv.appendChild(cdDiv);
+                        
+                        function updateCountdown() {
+                            const now = new Date().getTime();
+                            const distance = targetDate - now;
+                            
+                            // Le lien Google Maps avec les coordonnées formatées pour l'URL
+                            const linkMap1 = `<a href="https://www.google.com/maps/search/?api=1&query=45°42'56.9%22N+4°51'33.3%22E" target="_blank" class="gps-link">45°42'56.9"N 4°51'33.3"E</a>`;
+
+                            if (distance < 0) {
+                                clearInterval(countdownInterval);
+                                cdDiv.style.display = "none";
+                                cdDiv.innerHTML = `> SYSTÈME DÉVERROUILLÉ.<br>> Rends-toi au point de rendez-vous à 10h : ${linkMap1}<br>Une fois sur place, demande le mot de passe à tes équipiers pour commencer le briefing.`;
+                            } else {
+                                const d = Math.floor(distance / (1000 * 60 * 60 * 24));
+                                const h = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                                const m = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                                const s = Math.floor((distance % (1000 * 60)) / 1000);
+                                cdDiv.innerHTML = `> SYSTÈME VERROUILLÉ.<br>> DEPLOIEMENT DANS : ${d}j ${h}h ${m}m ${s}s<br><br>Rends-toi au point de rendez-vous : ${linkMap1}<br>Une fois sur place, demande le mot de passe à tes témoins pour commencer le briefing.`;
+                            }
+                        }
+                        
+                        updateCountdown(); // Affiche immédiatement sans attendre 1 seconde
+                        countdownInterval = setInterval(updateCountdown, 1000);
+                        
+                        requestInput();
+                    }
+
+                    if (hashedInput === TARGETS["0"]) {
+                        clearInterval(countdownInterval);
+                        outputDiv.innerHTML = ""; // Clear screen
+                        await typeText(">🔓 Mission acceptée, chargement du programme en cours.", "success");
+                        saveState(2);
+                        setTimeout(() => runLogic(), 1000);
+                    } else if (input !== null) {
+                        await printDirect("> ACCÈS REFUSÉ.", "error");
+                        requestInput();
+                    }
+                    break;
+
+                case 2: // Ready ?
+                    if (input === null) {
+                        await typeText(">Ready ? Y/N");
+                        requestInput();
+                    } else if (hashedInput === TARGETS["2"] || hashedInput === TARGETS["2_alt"]) {
+                        saveState(3);
+                        runLogic();
+                    } else {
+                        requestInput();
+                    }
+                    break;
+
+                case 3: // Mission 1 (Karting)
+                    if (input === null) {
+                        await typeText(">Mission 1 : Agent, l'asphalte t'attend. Alors monte dans les tours et fais leur mordre la poussière.");
+                        requestInput();
+                    } else if (hashedInput === TARGETS["3"]) {
+                        saveState(4);
+                        runLogic();
+                    } else {
+                        await printDirect("> CODE ERRONÉ.", "error");
+                        requestInput();
+                    }
+                    break;
+
+                case 4: // Transition VR
+                    if (input === null) {
+                        await typeText(">🔓 Bravo ! Prochaine étape : Error 404, reality not found. Virtual intervention required.", "success");
+                        await typeText(">Continuer ? Y/N");
+                        requestInput();
+                    } else if (hashedInput === TARGETS["4"] || hashedInput === TARGETS["4_alt"]) {
+                        saveState(5);
+                        runLogic();
+                    } else {
+                        requestInput();
+                    }
+                    break;
+
+                case 5: // Mission 2 (VR)
+                    if (input === null) {
+                        await typeText(">Mission 2 : Pour survivre à la matrice vous devrez vous unir, ou être déconnectés à tout jamais.");
+                        requestInput();
+                    } else if (hashedInput === TARGETS["5"]) {
+                        saveState(6);
+                        runLogic();
+                    } else {
+                        await printDirect("> CODE ERRONÉ.", "error");
+                        requestInput();
+                    }
+                    break;
+
+                case 6: // Transition Bière
+                    if (input === null) {
+                        await typeText(">🔓 Retour à la réalité, bien joué. Après l'effort, le réconfort.", "success");
+                        await typeText(">Continuer ? Y/N");
+                        requestInput();
+                    } else if (hashedInput === TARGETS["6"] || hashedInput === TARGETS["6_alt"]) {
+                        saveState(7);
+                        runLogic();
+                    } else {
+                        requestInput();
+                    }
+                    break;
+
+                case 7: // Mission 3 (Bière)
+                    if (input === null) {
+                        await typeText(">Mission 3 : « Rien ne se perd, rien ne se crée, tout se transforme ».");
+                        await typeText(">Attention, présence d'enzyme non identifiée.");
+                        requestInput();
+                    } else if (hashedInput === TARGETS["7"]) {
+                        saveState(8);
+                        runLogic();
+                    } else {
+                        await printDirect("> CODE ERRONÉ.", "error");
+                        requestInput();
+                    }
+                    break;
+
+                case 8: // Révélation Finale
+                    if (input === null) {
+                        await typeText(">🔓 C'est un succès. La mission touche bientôt à sa fin.", "success");
+                        await typeText(">3 activités, 3 codes. Quelle est la clé du bonheur ?");
+                        requestInput();
+                    } else if (hashedInput === TARGETS["8"]) {
+                        saveState(9);
+                        runLogic();
+                    } else {
+                        await printDirect("> CLÉ INCORRECTE. ANALYSEZ LES INITIALES.", "error");
+                        requestInput();
+                    }
+                    break;
+
+                case 9: // Fin
+                    if (input === null) {
+                        const linkMap2 = `<a href="https://www.google.com/maps/search/?api=1&query=45°46'18.0%22N+4°50'08.4%22E" target="_blank" class="gps-link">45°46'18.0"N 4°50'08.4"E</a>`;
+                        
+                        await typeText(">🎉 FÉLICITATIONS ! Mission accomplie.", "success");
+                        await printHTML(`> Point de rendez-vous final (20h30) : ${linkMap2}`, "success");
+                        await typeText(">D'ici là, profite d'une pause méritée, Agent.", "success");
+                        await typeText(">Fin de transmission.", "success");
+                    }
+                    break;
+            }
+        }
+
+        // Ecoute de la touche Entrée
+        hiddenInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !isTyping && hiddenInput.value.trim() !== "") {
+                const val = hiddenInput.value.trim().toUpperCase();
+                runLogic(val);
+            }
+        });
+
+        // Démarrage initial avec restauration d'historique
+        (async function init() {
+            if (state > 0) {
+                await restoreHistory();
+            }
+            runLogic();
+        })();
+
+    </script>
+</body>
+</html>
