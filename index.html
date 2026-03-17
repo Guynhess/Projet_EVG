@@ -12,9 +12,9 @@
             font-size: 16px;
             margin: 0;
             padding: 15px;
-            height: 100dvh;
+            min-height: 100dvh; /* S'adapte à la hauteur réelle */
             box-sizing: border-box;
-            overflow-y: auto;
+            overflow-x: hidden;
             text-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
         }
 
@@ -54,16 +54,18 @@
             color: #fff;
         }
 
-        /* Input invisible qui suit exactement la ligne de commande */
+        /* Input invisible collé au curseur */
         #hidden-input {
-            position: absolute;
             opacity: 0;
-            bottom: 0;
-            left: 0;
-            width: 10px;
-            height: 10px;
-            pointer-events: none;
-            z-index: -1;
+            width: 1px;
+            height: 1px;
+            border: none;
+            outline: none;
+            padding: 0;
+            margin: 0;
+            background: transparent;
+            color: transparent;
+            font-size: 16px; /* 16px empêche l'iPhone de zoomer tout seul */
         }
 
         #click-overlay {
@@ -77,9 +79,9 @@
     <div id="input-container">
         <span id="prompt">C:\EVG\AGENT></span>
         <span id="cmd-text"></span><span class="cursor"></span>
+        <input type="text" id="hidden-input" autocomplete="off" spellcheck="false" autocorrect="off" autocapitalize="characters">
     </div>
     
-    <input type="text" id="hidden-input" autocomplete="off" spellcheck="false" autocorrect="off" autocapitalize="characters">
     <div id="click-overlay"></div>
 
     <script>
@@ -169,22 +171,19 @@
             cmdText.textContent = "";
             hiddenInput.focus();
             
-            // On attend que le clavier virtuel ait fini de monter (environ 300ms)
             if (state > 0) {
                 setTimeout(() => {
-                    window.scrollTo(0, document.body.scrollHeight);
-                }, 300);
+                    // Cible directement la ligne de texte au lieu du vide
+                    inputContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }, 150);
             } else {
                 window.scrollTo(0, 0); 
             }
         }
 
-        // Sécurité ultime : si le téléphone redimensionne l'écran (ex: ouverture/fermeture du clavier), on réajuste en bas
         window.addEventListener('resize', () => {
-            if (state > 0) {
-                setTimeout(() => {
-                    window.scrollTo(0, document.body.scrollHeight);
-                }, 100);
+            if (state > 0 && inputContainer.style.display !== "none") {
+                inputContainer.scrollIntoView({ block: 'nearest' });
             }
         });
 
