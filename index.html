@@ -56,9 +56,15 @@
 
         /* Input invisible pour mobile et PC */
         #hidden-input {
-            position: absolute;
+            position: fixed; /* Reste fixé à l'écran, empêche le saut */
             opacity: 0;
-            top: -1000px;
+            top: 10px; 
+            left: 10px;
+            width: 1px;
+            height: 1px;
+            border: none;
+            outline: none;
+            pointer-events: none; /* Empêche de cliquer dessus par erreur */
         }
 
         #click-overlay {
@@ -85,26 +91,30 @@
             });
         }
 
-        // Codes cryptés (ROT13) - Correction des clés d'objet
+        // Lexique
         const TARGETS = { 
-            "0": "EBBG", 
-            "2": "L", 
-            "2_alt": "LRH", 
-            "3": "XNJNOHATN", 
-            "4": "L", 
-            "4_alt": "LRH", 
-            "5": "VAPRCGVBA", 
-            "6": "L", 
-            "6_alt": "LRH", 
-            "7": "ZNYG", 
-            "8": "XVZ" 
+            "0": "EBBG",       
+            "2": "L",          
+            "3": "L",          
+            "4": "GNH",        
+            "5": "XBBCN",      
+            "6": "L",          
+            "7": "QRYGN",      
+            "8": "VAPRCGVBA",  
+            "9": "L",          
+            "10": "YNZOQN",     
+            "11": "ZNYG",      
+            "12": "L",         
+            "13": "XVZ"        
         };
 
         const outputDiv = document.getElementById("output");
         const inputContainer = document.getElementById("input-container");
         const cmdText = document.getElementById("cmd-text");
         const hiddenInput = document.getElementById("hidden-input");
+        const promptSpan = document.getElementById("prompt");
         
+        // États de 0 à 14
         let state = parseInt(localStorage.getItem('evg_state')) || 0;
         let isTyping = false;
         let countdownInterval;
@@ -115,6 +125,11 @@
 
         // Synchronisation visuelle de la saisie
         hiddenInput.addEventListener('input', () => { cmdText.textContent = hiddenInput.value.toUpperCase(); });
+
+        // Gérer l'affichage visuel AGENT vs ADMIN
+        function setPromptAdmin(isAdmin) {
+            promptSpan.innerText = isAdmin ? "C:\\EVG\\ADMIN> " : "C:\\EVG\\AGENT> ";
+        }
 
         // Effet Machine à écrire
         async function typeText(text, cssClass = "line") {
@@ -127,7 +142,7 @@
             for (let i = 0; i < text.length; i++) {
                 lineDiv.textContent += text.charAt(i);
                 window.scrollTo(0, document.body.scrollHeight);
-                await new Promise(r => setTimeout(r, 15)); // Vitesse de frappe (un peu plus rapide)
+                await new Promise(r => setTimeout(r, 15)); 
             }
             isTyping = false;
             window.scrollTo(0, document.body.scrollHeight);
@@ -141,7 +156,6 @@
             window.scrollTo(0, document.body.scrollHeight);
         }
 
-	// Affiche directement du HTML (pour les liens cliquables)
         async function printHTML(html, cssClass = "line") {
             const lineDiv = document.createElement('div');
             lineDiv.className = cssClass;
@@ -163,59 +177,88 @@
             localStorage.setItem('evg_state', state);
         }
 
-	// --- RESTAURATION DE L'HISTORIQUE ---
-        // Cette fonction réécrit tout l'historique valide en cas d'actualisation de la page
+        // --- RESTAURATION DE L'HISTORIQUE ---
         async function restoreHistory() {
             if (state >= 2) {
-                await printDirect("C:\\EVG\\AGENT> ROOT");
-                await printDirect(">🔓 Mission acceptée, chargement du programme en cours.", "success");
+                await printDirect("C:\\EVG\\AGENT> " + Advanced_SHA256_Cryptographic_Hash(TARGETS["0"]));
+                await printDirect("> 🔓 Mission acceptée, chargement du programme en cours.", "success");
             }
             if (state >= 3) {
-                await printDirect(">Ready ? Y/N");
-                await printDirect("C:\\EVG\\AGENT> Y");
+                await printDirect("> Ready ? Y/N");
+                await printDirect("C:\\EVG\\AGENT> " + Advanced_SHA256_Cryptographic_Hash(TARGETS["2"]));
             }
             if (state >= 4) {
-                await printDirect(">Mission 1 : Agent, l'asphalte t'attend. Alors monte dans les tours et fais leur mordre la poussière.");
-                await printDirect("C:\\EVG\\AGENT> KAWABUNGA");
+                await printDirect("> Mission 1 : Agent, l'asphalte t'attend. Alors monte dans les tours et fais leur mordre la poussière.");
+                await printDirect("> Continuer ? Y/N");
+                await printDirect("C:\\EVG\\AGENT> " + Advanced_SHA256_Cryptographic_Hash(TARGETS["3"]));
             }
             if (state >= 5) {
-                await printDirect(">🔓 Bravo ! Prochaine étape : Error 404, reality not found. Virtual intervention required.", "success");
-                await printDirect(">Continuer ? Y/N");
-                await printDirect("C:\\EVG\\AGENT> Y");
+                await printDirect("> Veuillez demander à un Administrateur Système de saisir sa clé d'autorisation pour déchiffrer l'indice.");
+                await printDirect("C:\\EVG\\ADMIN> " + Advanced_SHA256_Cryptographic_Hash(TARGETS["4"]));
             }
             if (state >= 6) {
-                await printDirect(">Mission 2 : pour survivre à la matrice vous devrez vous unir, ou être déconnectés à tout jamais.");
-                await printDirect("C:\\EVG\\AGENT> INCEPTION");
+                await printDirect("> Autorisation acceptée. Déchiffrement de l'indice...");
+                await printDirect("> Indice : Gare aux carapaces sur la piste. Quel est le nom de l'espèce reptilienne ennemie du célèbre plombier moustachu ?");
+                await printDirect("C:\\EVG\\AGENT> " + Advanced_SHA256_Cryptographic_Hash(TARGETS["5"]));
             }
             if (state >= 7) {
-                await printDirect(">🔓 Retour à la réalité, bien joué. Après l'effort, le réconfort.", "success");
-                await printDirect(">Continuer ? Y/N");
-                await printDirect("C:\\EVG\\AGENT> Y");
+                await printDirect("> 🔓 Bravo ! Prochaine étape : ...Error 404, reality not found. Virtual intervention required.", "success");
+                await printDirect("> Mission 2 : Pour survivre à la matrice vous devrez vous unir, ou être déconnectés à tout jamais.");
+                await printDirect("> Continuer ? Y/N");
+                await printDirect("C:\\EVG\\AGENT> " + Advanced_SHA256_Cryptographic_Hash(TARGETS["6"]));
             }
             if (state >= 8) {
-                await printDirect(">Mission 3 : « Rien ne se perd, rien ne se crée, tout se transforme ».");
-                await printDirect(">Attention, présence d'enzyme non identifiée.");
-                await printDirect("C:\\EVG\\AGENT> MALT");
+                await printDirect("> Veuillez demander à un Administrateur Système de saisir sa clé d'autorisation pour déchiffrer l'indice.");
+                await printDirect("C:\\EVG\\ADMIN> " + Advanced_SHA256_Cryptographic_Hash(TARGETS["7"]));
             }
             if (state >= 9) {
-                await printDirect(">🔓 C'est un succès. La mission touche bientôt à sa fin.", "success");
-                await printDirect(">3 activités, 3 codes. Quelle est la clé du bonheur ?");
-                await printDirect("C:\\EVG\\AGENT> KIM");
+                await printDirect("> Autorisation acceptée. Déchiffrement de l'indice...");
+                await printDirect("> Indice : Un rêve à l'intérieur d'un rêve. Quel est le nom de ce concept popularisé au cinéma avec une toupie ?");
+                await printDirect("C:\\EVG\\AGENT> " + Advanced_SHA256_Cryptographic_Hash(TARGETS["8"]));
             }
+            if (state >= 10) {
+                await printDirect("> 🔓 Retour à la réalité, bien joué. Après l'effort, le réconfort.", "success");
+                await printDirect("> Mission 3 : « Rien ne se perd, rien ne se crée, tout se transforme ». Attention, présence d'enzyme non identifiée.");
+                await printDirect("> Continuer ? Y/N");
+                await printDirect("C:\\EVG\\AGENT> " + Advanced_SHA256_Cryptographic_Hash(TARGETS["9"]));
+            }
+            if (state >= 11) {
+                await printDirect("> Veuillez demander à un Administrateur Système de saisir sa clé d'autorisation pour déchiffrer l'indice.");
+                await printDirect("C:\\EVG\\ADMIN> " + Advanced_SHA256_Cryptographic_Hash(TARGETS["10"]));
+            }
+            if (state >= 12) {
+                await printDirect("> Autorisation acceptée. Déchiffrement de l'indice...");
+                await printDirect("> Indice : Je suis l'âme de ce breuvage. Céréale germée puis séchée, je suis indispensable à la bière. Qui suis-je ?");
+                await printDirect("C:\\EVG\\AGENT> " + Advanced_SHA256_Cryptographic_Hash(TARGETS["11"]));
+            }
+            if (state >= 13) {
+                await printDirect("> 🔓 C'est un succès. La mission touche bientôt à sa fin.", "success");
+                await printDirect("> 3 activités, 3 codes. La solution était sous tes yeux depuis le début.");
+                await printDirect("> Continuer ? Y/N");
+                await printDirect("C:\\EVG\\AGENT> " + Advanced_SHA256_Cryptographic_Hash(TARGETS["12"]));
+            }
+            if (state >= 14) {
+                await printDirect("> Accès Système autorisé. Veuillez saisir la clé de validation. (3) essais restants.");
+                await printDirect("C:\\EVG\\AGENT> " + Advanced_SHA256_Cryptographic_Hash(TARGETS["13"]));
+            }
+            
+            // On met à jour l'invite de commande selon l'état restauré
+            setPromptAdmin([4, 7, 10].includes(state));
         }
 
         // --- MOTEUR LOGIQUE DES ÉTAPES ---
         async function runLogic(input = null) {
             if (input !== null) {
-                await printDirect("C:\\EVG\\AGENT> " + input);
+                const isAdminExpected = [4, 7, 10].includes(state);
+                const prefix = isAdminExpected ? "C:\\EVG\\ADMIN> " : "C:\\EVG\\AGENT> ";
+                await printDirect(prefix + input);
             }
 
             const hashedInput = input ? Advanced_SHA256_Cryptographic_Hash(input) : null;
 
             switch (state) {
-                case 0: // Écran de Compte à rebours
+                case 0:
                     const targetDate = new Date("2026-03-21T10:00:00").getTime();
-                    
                     if (!countdownInterval) {
                         const cdDiv = document.createElement('div');
                         cdDiv.style.marginBottom = "20px";
@@ -224,33 +267,31 @@
                         function updateCountdown() {
                             const now = new Date().getTime();
                             const distance = targetDate - now;
-                            
-                            // Le lien Google Maps avec les coordonnées formatées pour l'URL
                             const linkMap1 = `<a href="https://www.google.com/maps/search/?api=1&query=45°42'56.9%22N+4°51'33.3%22E" target="_blank" class="gps-link">45°42'56.9"N 4°51'33.3"E</a>`;
-
+                            
                             if (distance < 0) {
+                                // Quand le temps est écoulé
                                 clearInterval(countdownInterval);
-                                cdDiv.style.display = "none";
-                                cdDiv.innerHTML = `> SYSTÈME DÉVERROUILLÉ.<br>> Rends-toi au point de rendez-vous à 10h : ${linkMap1}<br>Une fois sur place, demande le mot de passe à tes équipiers pour commencer le briefing.`;
+                                cdDiv.innerHTML = `> SYSTÈME DÉVERROUILLÉ.<br>> Rends-toi au point de rendez-vous à 10h (UTC+1) : ${linkMap1}<br>> Une fois sur place, demande le mot de passe aux administrateurs pour commencer le briefing.`;
+                                requestInput(); // Affiche l'invite de commande C:\EVG\AGENT>
                             } else {
+                                // Tant que le compteur tourne
                                 const d = Math.floor(distance / (1000 * 60 * 60 * 24));
                                 const h = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
                                 const m = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
                                 const s = Math.floor((distance % (1000 * 60)) / 1000);
-                                cdDiv.innerHTML = `> SYSTÈME VERROUILLÉ.<br>> DEPLOIEMENT DANS : ${d}j ${h}h ${m}m ${s}s<br><br>Rends-toi au point de rendez-vous à 10h (UTC+1) : ${linkMap1}<br>Une fois sur place, demande le mot de passe à tes équipiers pour commencer le briefing.`;
+                                cdDiv.innerHTML = `> SYSTÈME VERROUILLÉ.<br>> DEPLOIEMENT DANS : ${d}j ${h}h ${m}m ${s}s<br><br> Rends-toi au point de rendez-vous à 10h (UTC+1) : ${linkMap1}<br> Une fois sur place, demande le mot de passe aux administrateurs pour commencer le briefing.`;
                             }
                         }
-                        
-                        updateCountdown(); // Affiche immédiatement sans attendre 1 seconde
+                        updateCountdown();
                         countdownInterval = setInterval(updateCountdown, 1000);
-                        
                         requestInput();
                     }
 
                     if (hashedInput === TARGETS["0"]) {
                         clearInterval(countdownInterval);
-                        outputDiv.innerHTML = ""; // Clear screen
-                        await typeText(">🔓 Mission acceptée, chargement du programme en cours.", "success");
+                        outputDiv.innerHTML = "";
+                        await typeText("> 🔓 Mission acceptée, chargement du programme en cours.", "success");
                         saveState(2);
                         setTimeout(() => runLogic(), 1000);
                     } else if (input !== null) {
@@ -259,106 +300,146 @@
                     }
                     break;
 
-                case 2: // Ready ?
+                case 2:
                     if (input === null) {
-                        await typeText(">Ready ? Y/N");
+                        await typeText("> Ready ? Y/N");
                         requestInput();
-                    } else if (hashedInput === TARGETS["2"] || hashedInput === TARGETS["2_alt"]) {
-                        saveState(3);
-                        runLogic();
+                    } else if (hashedInput === TARGETS["2"]) { saveState(3); runLogic(); }
+                    else { requestInput(); }
+                    break;
+
+                case 3:
+                    if (input === null) {
+                        await typeText("> Mission 1 : Agent, l'asphalte t'attend. Alors monte dans les tours et fais leur mordre la poussière.");
+                        await typeText("> Continuer ? Y/N");
+                        requestInput();
+                    } else if (hashedInput === TARGETS["3"]) { saveState(4); runLogic(); }
+                    else { requestInput(); }
+                    break;
+
+                case 4:
+                    if (input === null) {
+                        await typeText("> Veuillez demander à un Administrateur Système de saisir sa clé d'autorisation pour déchiffrer l'indice.");
+                        setPromptAdmin(true);
+                        requestInput();
+                    } else if (hashedInput === TARGETS["4"]) { 
+                        setPromptAdmin(false); 
+                        saveState(5); 
+                        runLogic(); 
+                    } else { await printDirect("> ACCÈS REFUSÉ.", "error"); requestInput(); }
+                    break;
+
+                case 5:
+                    if (input === null) {
+                        await typeText("> Autorisation acceptée. Déchiffrement de l'indice...");
+                        await typeText("> Indice : Gare aux carapaces sur la piste. Quel est le nom de l'espèce reptilienne ennemie du célèbre plombier moustachu ?");
+                        requestInput();
+                    } else if (hashedInput === TARGETS["5"]) { saveState(6); runLogic(); }
+                    else { await printDirect("> CODE ERRONÉ.", "error"); requestInput(); }
+                    break;
+
+                case 6:
+                    if (input === null) {
+                        await typeText("> 🔓 Bravo ! Prochaine étape : ...Error 404, reality not found. Virtual intervention required.", "success");
+                        await typeText("> Mission 2 : Pour survivre à la matrice vous devrez vous unir, ou être déconnectés à tout jamais.");
+                        await typeText("> Continuer ? Y/N");
+                        requestInput();
+                    } else if (hashedInput === TARGETS["6"]) { saveState(7); runLogic(); }
+                    else { requestInput(); }
+                    break;
+
+                case 7:
+                    if (input === null) {
+                        await typeText("> Veuillez demander à un Administrateur Système de saisir sa clé d'autorisation pour déchiffrer l'indice.");
+                        setPromptAdmin(true);
+                        requestInput();
+                    } else if (hashedInput === TARGETS["7"]) { 
+                        setPromptAdmin(false); 
+                        saveState(8); 
+                        runLogic(); 
+                    } else { await printDirect("> ACCÈS REFUSÉ.", "error"); requestInput(); }
+                    break;
+
+                case 8:
+                    if (input === null) {
+                        await typeText("> Autorisation acceptée. Déchiffrement de l'indice...");
+                        await typeText("> Indice : Un rêve à l'intérieur d'un rêve. Quel est le nom de ce concept popularisé au cinéma avec une toupie ?");
+                        requestInput();
+                    } else if (hashedInput === TARGETS["8"]) { saveState(9); runLogic(); }
+                    else { await printDirect("> CODE ERRONÉ.", "error"); requestInput(); }
+                    break;
+
+                case 9:
+                    if (input === null) {
+                        await typeText("> 🔓 Retour à la réalité, bien joué. Après l'effort, le réconfort.", "success");
+                        await typeText("> Mission 3 : « Rien ne se perd, rien ne se crée, tout se transforme ». Attention, présence d'enzyme non identifiée.");
+                        await typeText("> Continuer ? Y/N");
+                        requestInput();
+                    } else if (hashedInput === TARGETS["9"]) { saveState(10); runLogic(); }
+                    else { requestInput(); }
+                    break;
+
+                case 10:
+                    if (input === null) {
+                        await typeText("> Veuillez demander à un Administrateur Système de saisir sa clé d'autorisation pour déchiffrer l'indice.");
+                        setPromptAdmin(true);
+                        requestInput();
+                    } else if (hashedInput === TARGETS["10"]) { 
+                        setPromptAdmin(false); 
+                        saveState(11); 
+                        runLogic(); 
+                    } else { await printDirect("> ACCÈS REFUSÉ.", "error"); requestInput(); }
+                    break;
+
+                case 11:
+                    if (input === null) {
+                        await typeText("> Autorisation acceptée. Déchiffrement de l'indice...");
+                        await typeText("> Indice : Je suis l'âme de ce breuvage. Céréale germée puis séchée, je suis indispensable à la bière. Qui suis-je ?");
+                        requestInput();
+                    } else if (hashedInput === TARGETS["11"]) { saveState(12); runLogic(); }
+                    else { await printDirect("> CODE ERRONÉ.", "error"); requestInput(); }
+                    break;
+
+                case 12:
+                    if (input === null) {
+                        await typeText("> 🔓 C'est un succès. La mission touche bientôt à sa fin.", "success");
+                        await typeText("> 3 activités, 3 codes. La solution était sous tes yeux depuis le début.");
+                        await typeText("> Continuer ? Y/N");
+                        requestInput();
+                    } else if (hashedInput === TARGETS["12"]) { saveState(13); runLogic(); }
+                    else { requestInput(); }
+                    break;
+
+                case 13:
+                    if (input === null) {
+                        await typeText("> Accès Système autorisé. Veuillez saisir la clé de validation. (3) essais restants.");
+                        requestInput();
+                    } else if (hashedInput === TARGETS["13"]) { 
+                        saveState(14); 
+                        runLogic(); 
                     } else {
+                        let fails = parseInt(localStorage.getItem('evg_fails')) || 0;
+                        fails++;
+                        localStorage.setItem('evg_fails', fails);
+                        
+                        if (fails === 1) {
+                            await printDirect("> CLÉ INCORRECTE. ANALYSEZ L'HISTORIQUE. (2) essais restants.", "error");
+                        } else if (fails === 2) {
+                            await printDirect("> CLÉ INCORRECTE. ANALYSEZ L'HISTORIQUE. (1) essai restant. Chargement de l'indice...", "error");
+                        } else {
+                            await printDirect("> Indice : Concatène la première lettre de chaque code validé aujourd'hui. Quelle est la clé de ton avenir ?", "error");
+                        }
                         requestInput();
                     }
                     break;
 
-                case 3: // Mission 1 (Karting)
-                    if (input === null) {
-                        await typeText(">Mission 1 : Agent, l'asphalte t'attend. Alors monte dans les tours et fais leur mordre la poussière.");
-                        requestInput();
-                    } else if (hashedInput === TARGETS["3"]) {
-                        saveState(4);
-                        runLogic();
-                    } else {
-                        await printDirect("> CODE ERRONÉ.", "error");
-                        requestInput();
-                    }
-                    break;
-
-                case 4: // Transition VR
-                    if (input === null) {
-                        await typeText(">🔓 Bravo ! Prochaine étape : Error 404, reality not found. Virtual intervention required.", "success");
-                        await typeText(">Continuer ? Y/N");
-                        requestInput();
-                    } else if (hashedInput === TARGETS["4"] || hashedInput === TARGETS["4_alt"]) {
-                        saveState(5);
-                        runLogic();
-                    } else {
-                        requestInput();
-                    }
-                    break;
-
-                case 5: // Mission 2 (VR)
-                    if (input === null) {
-                        await typeText(">Mission 2 : Pour survivre à la matrice vous devrez vous unir, ou être déconnectés à tout jamais.");
-                        requestInput();
-                    } else if (hashedInput === TARGETS["5"]) {
-                        saveState(6);
-                        runLogic();
-                    } else {
-                        await printDirect("> CODE ERRONÉ.", "error");
-                        requestInput();
-                    }
-                    break;
-
-                case 6: // Transition Bière
-                    if (input === null) {
-                        await typeText(">🔓 Retour à la réalité, bien joué. Après l'effort, le réconfort.", "success");
-                        await typeText(">Continuer ? Y/N");
-                        requestInput();
-                    } else if (hashedInput === TARGETS["6"] || hashedInput === TARGETS["6_alt"]) {
-                        saveState(7);
-                        runLogic();
-                    } else {
-                        requestInput();
-                    }
-                    break;
-
-                case 7: // Mission 3 (Bière)
-                    if (input === null) {
-                        await typeText(">Mission 3 : « Rien ne se perd, rien ne se crée, tout se transforme ».");
-                        await typeText(">Attention, présence d'enzyme non identifiée.");
-                        requestInput();
-                    } else if (hashedInput === TARGETS["7"]) {
-                        saveState(8);
-                        runLogic();
-                    } else {
-                        await printDirect("> CODE ERRONÉ.", "error");
-                        requestInput();
-                    }
-                    break;
-
-                case 8: // Révélation Finale
-                    if (input === null) {
-                        await typeText(">🔓 C'est un succès. La mission touche bientôt à sa fin.", "success");
-                        await typeText(">3 activités, 3 codes. Quelle est la clé du bonheur ?");
-                        requestInput();
-                    } else if (hashedInput === TARGETS["8"]) {
-                        saveState(9);
-                        runLogic();
-                    } else {
-                        await printDirect("> CLÉ INCORRECTE. ANALYSEZ LES INITIALES.", "error");
-                        requestInput();
-                    }
-                    break;
-
-                case 9: // Fin
+                case 14:
                     if (input === null) {
                         const linkMap2 = `<a href="https://www.google.com/maps/search/?api=1&query=45°46'18.0%22N+4°50'08.4%22E" target="_blank" class="gps-link">45°46'18.0"N 4°50'08.4"E</a>`;
-                        
-                        await typeText(">🎉 FÉLICITATIONS ! Mission accomplie.", "success");
+                        await typeText("> 🎉 FÉLICITATIONS ! Mission accomplie.", "success");
                         await printHTML(`> Point de rendez-vous final (20h30) : ${linkMap2}`, "success");
-                        await typeText(">D'ici là, profite d'une pause méritée, Agent.", "success");
-                        await typeText(">Fin de transmission.", "success");
+                        await typeText("> D'ici là, profite d'une pause méritée, Agent.", "success");
+                        await typeText("> Fin de transmission.", "success");
                     }
                     break;
             }
