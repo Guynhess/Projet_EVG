@@ -282,11 +282,19 @@
             if (input !== null) {
                 const isAdminExpected = [4, 7, 10].includes(state);
                 const prefix = isAdminExpected ? "C:\\EVG\\ADMIN> " : "C:\\EVG\\AGENT> ";
+                
+                // 1. On cache la zone de saisie clignotante
+                inputContainer.style.display = "none";
+                
+                // 2. On écrit la ligne en dur immédiatement (zéro clignotement)
                 await printDirect(prefix + input);
+                
+                // 3. Pause dramatique de 1 seconde (1000 millisecondes) avant la réponse
+                await new Promise(r => setTimeout(r, 1000));
             }
 
             const hashedInput = input ? Advanced_SHA256_Cryptographic_Hash(input) : null;
-
+            
             switch (state) {
                 case 0:
                     const targetDate = new Date("2026-03-21T10:00:00").getTime();
@@ -481,14 +489,11 @@
             if (e.key === 'Enter' && !isTyping && hiddenInput.value.trim() !== "") {
                 const val = hiddenInput.value.trim().toUpperCase();
                 
-                // 1. Force le clavier à disparaître instantanément
-                hiddenInput.blur();
-                inputContainer.style.display = "none";
+                // Force le clavier à disparaître sur mobile
+                hiddenInput.blur(); 
                 
-                // 2. Pause dramatique (300ms) pour laisser l'écran se stabiliser avant de lancer le texte
-                setTimeout(() => {
-                    runLogic(val);
-                }, 300);
+                // On lance directement la logique (qui gère maintenant la pause)
+                runLogic(val);
             }
         });
 
