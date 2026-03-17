@@ -35,7 +35,7 @@
         .error { color: #ff3333; text-shadow: 0 0 5px rgba(255, 0, 0, 0.5); }
         .success { color: #00ffff; text-shadow: 0 0 5px rgba(0, 255, 255, 0.5); }
 
-        #input-container { display: none; align-items: center; margin-top: 10px; }
+        #input-container { display: none; align-items: center; margin-top: 10px; position: relative; }
         #prompt { margin-right: 8px; font-weight: bold; }
         .cursor { display: inline-block; width: 10px; height: 1.2em; background-color: #00ff00; vertical-align: middle; animation: blink 1s step-end infinite; }
         
@@ -54,17 +54,16 @@
             color: #fff;
         }
 
-        /* Input invisible pour mobile et PC */
+        /* Input invisible qui suit exactement la ligne de commande */
         #hidden-input {
-            position: fixed; /* Reste fixé à l'écran, empêche le saut */
+            position: absolute;
             opacity: 0;
-            top: 10px; 
-            left: 10px;
-            width: 1px;
-            height: 1px;
-            border: none;
-            outline: none;
-            pointer-events: none; /* Empêche de cliquer dessus par erreur */
+            bottom: 0;
+            left: 0;
+            width: 10px;
+            height: 10px;
+            pointer-events: none;
+            z-index: -1;
         }
 
         #click-overlay {
@@ -169,7 +168,13 @@
             hiddenInput.value = "";
             cmdText.textContent = "";
             hiddenInput.focus();
-            window.scrollTo(0, document.body.scrollHeight);
+            
+            // On scrolle tout en bas seulement si le jeu a commencé
+            if (state > 0) {
+                window.scrollTo(0, document.body.scrollHeight);
+            } else {
+                window.scrollTo(0, 0); // Force l'affichage tout en haut pour le compte à rebours
+            }
         }
 
         function saveState(newState) {
