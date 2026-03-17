@@ -12,7 +12,7 @@
             font-size: 16px;
             margin: 0;
             padding: 15px;
-            height: 100vh;
+            height: 100dvh;
             box-sizing: border-box;
             overflow-y: auto;
             text-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
@@ -169,13 +169,24 @@
             cmdText.textContent = "";
             hiddenInput.focus();
             
-            // On scrolle tout en bas seulement si le jeu a commencé
+            // On attend que le clavier virtuel ait fini de monter (environ 300ms)
             if (state > 0) {
-                window.scrollTo(0, document.body.scrollHeight);
+                setTimeout(() => {
+                    window.scrollTo(0, document.body.scrollHeight);
+                }, 300);
             } else {
-                window.scrollTo(0, 0); // Force l'affichage tout en haut pour le compte à rebours
+                window.scrollTo(0, 0); 
             }
         }
+
+        // Sécurité ultime : si le téléphone redimensionne l'écran (ex: ouverture/fermeture du clavier), on réajuste en bas
+        window.addEventListener('resize', () => {
+            if (state > 0) {
+                setTimeout(() => {
+                    window.scrollTo(0, document.body.scrollHeight);
+                }, 100);
+            }
+        });
 
         function saveState(newState) {
             state = newState;
