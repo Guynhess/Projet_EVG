@@ -133,6 +133,7 @@
         }
 
         // Effet Machine à écrire
+        // Effet Machine à écrire
         async function typeText(text, cssClass = "line") {
             isTyping = true;
             inputContainer.style.display = "none";
@@ -142,11 +143,27 @@
 
             for (let i = 0; i < text.length; i++) {
                 lineDiv.textContent += text.charAt(i);
-                window.scrollTo(0, document.body.scrollHeight);
+                // Force agressivement l'écran à suivre cette ligne précise
+                lineDiv.scrollIntoView(false); 
                 await new Promise(r => setTimeout(r, 15)); 
             }
             isTyping = false;
-            window.scrollTo(0, document.body.scrollHeight);
+        }
+
+        async function printDirect(text, cssClass = "line") {
+            const lineDiv = document.createElement('div');
+            lineDiv.className = cssClass;
+            lineDiv.textContent = text;
+            outputDiv.appendChild(lineDiv);
+            lineDiv.scrollIntoView(false);
+        }
+
+        async function printHTML(html, cssClass = "line") {
+            const lineDiv = document.createElement('div');
+            lineDiv.className = cssClass;
+            lineDiv.innerHTML = html;
+            outputDiv.appendChild(lineDiv);
+            lineDiv.scrollIntoView(false);
         }
 
         async function printDirect(text, cssClass = "line") {
@@ -464,7 +481,15 @@
         hiddenInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' && !isTyping && hiddenInput.value.trim() !== "") {
                 const val = hiddenInput.value.trim().toUpperCase();
-                runLogic(val);
+                
+                // 1. Force le clavier à disparaître instantanément
+                hiddenInput.blur();
+                inputContainer.style.display = "none";
+                
+                // 2. Pause dramatique (300ms) pour laisser l'écran se stabiliser avant de lancer le texte
+                setTimeout(() => {
+                    runLogic(val);
+                }, 300);
             }
         });
 
