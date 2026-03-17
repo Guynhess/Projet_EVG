@@ -279,6 +279,13 @@
 
         // --- MOTEUR LOGIQUE DES ÉTAPES ---
         async function runLogic(input = null) {
+
+	    if (input === "RESET") {
+                localStorage.clear(); // Efface la mémoire
+                location.reload();    // Recharge la page instantanément
+                return;               // Stoppe le reste du code
+            }
+
             if (input !== null) {
                 const isAdminExpected = [4, 7, 10].includes(state);
                 const prefix = isAdminExpected ? "C:\\EVG\\ADMIN> " : "C:\\EVG\\AGENT> ";
