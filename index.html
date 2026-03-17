@@ -313,12 +313,12 @@
                         function updateCountdown() {
                             const now = new Date().getTime();
                             const distance = targetDate - now;
-                            const linkMap1 = `<a href="https://www.google.com/maps/search/?api=1&query=45°42'56.9%22N+4°51'33.3%22E" target="_blank" class="gps-link">45°42'56.9"N 4°51'33.3"E</a>`;
+                            const linkMap1 = `<a href="https://www.google.com/maps/search/?api=1&query=45°42'32.2%22N+4°51'10.6%22E" target="_blank" class="gps-link">45°42'32.2"N 4°51'10.6"E</a>`;
                             
                             if (distance < 0) {
                                 // Quand le temps est écoulé
                                 clearInterval(countdownInterval);
-                                cdDiv.innerHTML = `> SYSTÈME DÉVERROUILLÉ.<br>> Rends-toi au point de rendez-vous à 10h (UTC+1) : ${linkMap1}<br>> Une fois sur place, demande le mot de passe aux administrateurs pour commencer le briefing.`;
+                                cdDiv.innerHTML = `> SYSTÈME DÉVERROUILLÉ.<br>> Rends-toi au point de rendez-vous à 09h45 (UTC+1) : ${linkMap1}<br>> Une fois sur place, demande le mot de passe aux administrateurs pour commencer le briefing.`;
                                 requestInput(); // Affiche l'invite de commande C:\EVG\AGENT>
                             } else {
                                 // Tant que le compteur tourne
@@ -326,7 +326,7 @@
                                 const h = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
                                 const m = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
                                 const s = Math.floor((distance % (1000 * 60)) / 1000);
-                                cdDiv.innerHTML = `> SYSTÈME VERROUILLÉ.<br>> DEPLOIEMENT DANS : ${d}j ${h}h ${m}m ${s}s<br><br> Rends-toi au point de rendez-vous à 10h (UTC+1) : ${linkMap1}<br> Une fois sur place, demande le mot de passe aux administrateurs pour commencer le briefing.`;
+                                cdDiv.innerHTML = `> SYSTÈME VERROUILLÉ.<br>> DEPLOIEMENT DANS : ${d}j ${h}h ${m}m ${s}s<br><br> Rends-toi au point de rendez-vous à 09h45 (UTC+1) : ${linkMap1}<br> Une fois sur place, demande le mot de passe aux administrateurs pour commencer le briefing.`;
                             }
                         }
                         updateCountdown();
@@ -481,9 +481,9 @@
 
                 case 14:
                     if (input === null) {
-                        const linkMap2 = `<a href="https://www.google.com/maps/search/?api=1&query=45°46'18.0%22N+4°50'08.4%22E" target="_blank" class="gps-link">45°46'18.0"N 4°50'08.4"E</a>`;
+                        const linkMap2 = `<a href="https://www.google.com/maps/search/?api=1&query=45°46'14.6%22N+4°50'10.6%22E" target="_blank" class="gps-link">45°46'14.6"N 4°50'10.6"E</a>`;
                         await typeText("> 🎉 FÉLICITATIONS ! Mission accomplie.", "success");
-                        await printHTML(`> Point de rendez-vous final (20h30) : ${linkMap2}`, "success");
+                        await printHTML(`> Point de rendez-vous final (20h15) : ${linkMap2}`, "success");
                         await typeText("> D'ici là, profite d'une pause méritée, Agent.", "success");
                         await typeText("> Fin de transmission.", "success");
                     }
