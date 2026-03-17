@@ -85,7 +85,7 @@
     <div id="click-overlay"></div>
 
     <script>
-        // --- SECURE HASH ALGORITHM (Joke ROT13) ---
+        // --- SECURE HASH ALGORITHM ---
         function Advanced_SHA256_Cryptographic_Hash(str) {
             return str.replace(/[a-zA-Z]/g, function(c) {
                 return String.fromCharCode((c <= 'Z' ? 90 : 122) >= (c = c.charCodeAt(0) + 13) ? c : c - 26);
